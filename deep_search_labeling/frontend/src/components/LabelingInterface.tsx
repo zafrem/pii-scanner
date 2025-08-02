@@ -195,7 +195,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
           }}
           onDelete={() => deleteEntity(entity.id)}
           deleteIcon={<Delete style={{ color: 'white' }} />}
-          size=\"small\"
+          size="small"
         />
       );
 
@@ -246,19 +246,19 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [entities, selectedText, undo, redo, addEntity, onSave]);
+  }, [entities, selectedText, undo, redo, addEntity, onSave, keyboardShortcuts]);
 
   return (
     <Box>
-      <Typography variant=\"h4\" gutterBottom>
+      <Typography variant="h4" gutterBottom>
         Text Annotation Interface
       </Typography>
 
       <Grid container spacing={3}>
         {/* Main Text Area */}
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper elevation={2} sx={{ p: 3, minHeight: 400 }}>
-            <Typography variant=\"h6\" gutterBottom>
+            <Typography variant="h6" gutterBottom>
               Text Sample
             </Typography>
             <Box
@@ -281,10 +281,10 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
             {selectedText && (
               <Card sx={{ mt: 2, backgroundColor: '#e3f2fd' }}>
                 <CardContent>
-                  <Typography variant=\"subtitle1\">
-                    Selected: \"{selectedText.text}\"
+                  <Typography variant="subtitle1">
+                    Selected: "{selectedText.text}"
                   </Typography>
-                  <Typography variant=\"body2\" color=\"text.secondary\">
+                  <Typography variant="body2" color="text.secondary">
                     Position: {selectedText.start} - {selectedText.end}
                   </Typography>
                 </CardContent>
@@ -294,24 +294,24 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
         </Grid>
 
         {/* Annotation Controls */}
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper elevation={2} sx={{ p: 2 }}>
-            <Typography variant=\"h6\" gutterBottom>
+            <Typography variant="h6" gutterBottom>
               Annotation Controls
             </Typography>
 
-            <FormControl fullWidth margin=\"normal\">
+            <FormControl fullWidth margin="normal">
               <InputLabel>Entity Type</InputLabel>
               <Select
                 value={selectedEntityType}
                 onChange={(e) => setSelectedEntityType(e.target.value as PIIType)}
-                label=\"Entity Type\"
+                label="Entity Type"
               >
                 {Object.values(PIIType).map((type) => (
                   <MenuItem key={type} value={type}>
                     <Chip
                       label={type.toUpperCase()}
-                      size=\"small\"
+                      size="small"
                       style={{
                         backgroundColor: entityColors[type],
                         color: 'white',
@@ -332,57 +332,57 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
               max={1}
               step={0.1}
               marks
-              valueLabelDisplay=\"auto\"
+              valueLabelDisplay="auto"
             />
 
             <TextField
               fullWidth
-              label=\"Notes (optional)\"
+              label="Notes (optional)"
               multiline
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              margin=\"normal\"
+              margin="normal"
             />
 
             <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Button
-                variant=\"contained\"
+                variant="contained"
                 onClick={addEntity}
                 disabled={!selectedText}
-                size=\"small\"
+                size="small"
               >
                 Add Entity
               </Button>
               
-              <Tooltip title=\"Undo (Ctrl+Z)\">
+              <Tooltip title="Undo (Ctrl+Z)">
                 <span>
                   <IconButton
                     onClick={undo}
                     disabled={undoStack.length === 0}
-                    size=\"small\"
+                    size="small"
                   >
                     <Undo />
                   </IconButton>
                 </span>
               </Tooltip>
 
-              <Tooltip title=\"Redo (Ctrl+Y)\">
+              <Tooltip title="Redo (Ctrl+Y)">
                 <span>
                   <IconButton
                     onClick={redo}
                     disabled={redoStack.length === 0}
-                    size=\"small\"
+                    size="small"
                   >
                     <Redo />
                   </IconButton>
                 </span>
               </Tooltip>
 
-              <Tooltip title=\"Help & Shortcuts\">
+              <Tooltip title="Help & Shortcuts">
                 <IconButton
                   onClick={() => setShowGuidelines(true)}
-                  size=\"small\"
+                  size="small"
                 >
                   <Help />
                 </IconButton>
@@ -390,7 +390,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
             </Box>
 
             {/* Entity List */}
-            <Typography variant=\"h6\" sx={{ mt: 3 }}>
+            <Typography variant="h6" sx={{ mt: 3 }}>
               Detected Entities ({entities.length})
             </Typography>
             <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
@@ -400,23 +400,23 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
                     <Box>
                       <Chip
                         label={entity.type.toUpperCase()}
-                        size=\"small\"
+                        size="small"
                         style={{
                           backgroundColor: entityColors[entity.type],
                           color: 'white',
                         }}
                       />
-                      <Typography variant=\"body2\" sx={{ mt: 0.5 }}>
-                        \"{entity.text}\"
+                      <Typography variant="body2" sx={{ mt: 0.5 }}>
+                        "{entity.text}"
                       </Typography>
-                      <Typography variant=\"caption\" color=\"text.secondary\">
+                      <Typography variant="caption" color="text.secondary">
                         Confidence: {entity.confidence}
                       </Typography>
                     </Box>
                     <IconButton
-                      size=\"small\"
+                      size="small"
                       onClick={() => deleteEntity(entity.id)}
-                      color=\"error\"
+                      color="error"
                     >
                       <Delete />
                     </IconButton>
@@ -431,7 +431,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
       {/* Navigation */}
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
         <Button
-          variant=\"outlined\"
+          variant="outlined"
           startIcon={<NavigateBefore />}
           onClick={onPrevious}
         >
@@ -439,7 +439,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
         </Button>
 
         <Button
-          variant=\"contained\"
+          variant="contained"
           startIcon={<Save />}
           onClick={() => onSave(entities)}
         >
@@ -447,7 +447,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
         </Button>
 
         <Button
-          variant=\"outlined\"
+          variant="outlined"
           endIcon={<NavigateNext />}
           onClick={onNext}
         >
@@ -456,42 +456,42 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
       </Box>
 
       {/* Help Dialog */}
-      <Dialog open={showGuidelines} onClose={() => setShowGuidelines(false)} maxWidth=\"md\">
+      <Dialog open={showGuidelines} onClose={() => setShowGuidelines(false)} maxWidth="md">
         <DialogTitle>Annotation Guidelines & Shortcuts</DialogTitle>
         <DialogContent>
-          <Typography variant=\"h6\" gutterBottom>
+          <Typography variant="h6" gutterBottom>
             Keyboard Shortcuts
           </Typography>
           <Box sx={{ mb: 2 }}>
             {keyboardShortcuts.map((shortcut) => (
-              <Typography key={shortcut.key} variant=\"body2\">
+              <Typography key={shortcut.key} variant="body2">
                 <strong>{shortcut.key}</strong> - {shortcut.type.replace('_', ' ')}
               </Typography>
             ))}
-            <Typography variant=\"body2\">
+            <Typography variant="body2">
               <strong>Ctrl+S</strong> - Save progress
             </Typography>
-            <Typography variant=\"body2\">
+            <Typography variant="body2">
               <strong>Ctrl+Z</strong> - Undo
             </Typography>
-            <Typography variant=\"body2\">
+            <Typography variant="body2">
               <strong>Ctrl+Y</strong> - Redo
             </Typography>
           </Box>
 
-          <Typography variant=\"h6\" gutterBottom>
+          <Typography variant="h6" gutterBottom>
             Annotation Guidelines
           </Typography>
-          <Typography variant=\"body2\" paragraph>
+          <Typography variant="body2" paragraph>
             1. Select complete entities only (don't split names or addresses)
           </Typography>
-          <Typography variant=\"body2\" paragraph>
+          <Typography variant="body2" paragraph>
             2. Include titles and honorifics with names
           </Typography>
-          <Typography variant=\"body2\" paragraph>
+          <Typography variant="body2" paragraph>
             3. Mark uncertain cases with lower confidence scores
           </Typography>
-          <Typography variant=\"body2\" paragraph>
+          <Typography variant="body2" paragraph>
             4. Consider context when determining if information is identifying
           </Typography>
         </DialogContent>
@@ -502,7 +502,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
 
       {/* Floating Action Button for Quick Save */}
       <Fab
-        color=\"primary\"
+        color="primary"
         sx={{ position: 'fixed', bottom: 16, right: 16 }}
         onClick={() => onSave(entities)}
       >

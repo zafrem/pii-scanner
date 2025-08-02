@@ -17,9 +17,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
   Fab,
 } from '@mui/material';
 import {
@@ -121,11 +118,11 @@ const ProjectList: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant=\"h4\" component=\"h1\">
+        <Typography variant="h4" component="h1">
           Labeling Projects
         </Typography>
         <Button
-          variant=\"contained\"
+          variant="contained"
           startIcon={<Add />}
           onClick={() => setCreateDialogOpen(true)}
         >
@@ -135,61 +132,61 @@ const ProjectList: React.FC = () => {
 
       <Grid container spacing={3}>
         {mockProjects.map((project) => (
-          <Grid item xs={12} sm={6} lg={4} key={project.id}>
+          <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={project.id}>
             <Card elevation={2}>
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Typography variant=\"h6\" component=\"h2\" gutterBottom>
+                  <Typography variant="h6" component="h2" gutterBottom>
                     {project.name}
                   </Typography>
                   <IconButton
-                    size=\"small\"
+                    size="small"
                     onClick={(e) => handleMenuClick(e, project)}
                   >
                     <MoreVert />
                   </IconButton>
                 </Box>
 
-                <Typography variant=\"body2\" color=\"text.secondary\" paragraph>
+                <Typography variant="body2" color="text.secondary" paragraph>
                   {project.description}
                 </Typography>
 
                 <Chip
                   label={project.status}
                   color={getStatusColor(project.status) as any}
-                  size=\"small\"
+                  size="small"
                   sx={{ mb: 2 }}
                 />
 
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant=\"body2\" gutterBottom>
+                  <Typography variant="body2" gutterBottom>
                     Progress: {project.completedSamples} / {project.totalSamples}
                   </Typography>
                   <LinearProgress
-                    variant=\"determinate\"
+                    variant="determinate"
                     value={(project.completedSamples / project.totalSamples) * 100}
                     sx={{ height: 8, borderRadius: 4 }}
                   />
                 </Box>
 
-                <Typography variant=\"body2\" color=\"text.secondary\">
+                <Typography variant="body2" color="text.secondary">
                   Quality Threshold: {project.qualityThreshold * 100}%
                 </Typography>
-                <Typography variant=\"body2\" color=\"text.secondary\">
+                <Typography variant="body2" color="text.secondary">
                   Multi-annotator: {project.multiAnnotator ? 'Yes' : 'No'}
                 </Typography>
               </CardContent>
 
               <CardActions>
                 <Button
-                  size=\"small\"
+                  size="small"
                   startIcon={<PlayArrow />}
                   onClick={() => navigate(`/projects/${project.id}/label`)}
                 >
                   Start Labeling
                 </Button>
                 <Button
-                  size=\"small\"
+                  size="small"
                   startIcon={<Analytics />}
                   onClick={() => navigate(`/projects/${project.id}/analytics`)}
                 >
@@ -228,47 +225,47 @@ const ProjectList: React.FC = () => {
       </Menu>
 
       {/* Create Project Dialog */}
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth=\"sm\" fullWidth>
+      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Create New Project</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
-            margin=\"dense\"
-            label=\"Project Name\"
+            margin="dense"
+            label="Project Name"
             fullWidth
-            variant=\"outlined\"
+            variant="outlined"
             value={newProject.name}
             onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
             sx={{ mb: 2 }}
           />
           <TextField
-            margin=\"dense\"
-            label=\"Description\"
+            margin="dense"
+            label="Description"
             fullWidth
             multiline
             rows={3}
-            variant=\"outlined\"
+            variant="outlined"
             value={newProject.description}
             onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
             sx={{ mb: 2 }}
           />
           <TextField
-            margin=\"dense\"
-            label=\"Annotation Guidelines\"
+            margin="dense"
+            label="Annotation Guidelines"
             fullWidth
             multiline
             rows={4}
-            variant=\"outlined\"
+            variant="outlined"
             value={newProject.guidelines}
             onChange={(e) => setNewProject({ ...newProject, guidelines: e.target.value })}
             sx={{ mb: 2 }}
           />
           <TextField
-            margin=\"dense\"
-            label=\"Quality Threshold\"
-            type=\"number\"
+            margin="dense"
+            label="Quality Threshold"
+            type="number"
             inputProps={{ min: 0, max: 1, step: 0.1 }}
-            variant=\"outlined\"
+            variant="outlined"
             value={newProject.qualityThreshold}
             onChange={(e) => setNewProject({ ...newProject, qualityThreshold: parseFloat(e.target.value) })}
             sx={{ mb: 2 }}
@@ -276,7 +273,7 @@ const ProjectList: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreateProject} variant=\"contained\">
+          <Button onClick={handleCreateProject} variant="contained">
             Create Project
           </Button>
         </DialogActions>
@@ -284,7 +281,7 @@ const ProjectList: React.FC = () => {
 
       {/* Floating Action Button */}
       <Fab
-        color=\"primary\"
+        color="primary"
         sx={{ position: 'fixed', bottom: 16, right: 16 }}
         onClick={() => setCreateDialogOpen(true)}
       >

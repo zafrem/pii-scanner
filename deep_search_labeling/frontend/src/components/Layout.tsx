@@ -6,6 +6,7 @@ import {
   Drawer,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Box,
@@ -52,20 +53,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const drawer = (
     <div>
       <Toolbar>
-        <Typography variant=\"h6\" noWrap component=\"div\">
+        <Typography variant="h6" noWrap component="div">
           PII Labeling
         </Typography>
       </Toolbar>
       <List>
         {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            onClick={() => navigate(item.path)}
-            selected={location.pathname.includes(item.path.split('/')[1])}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              onClick={() => navigate(item.path)}
+              selected={location.pathname.includes(item.path.split('/')[1])}
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>
@@ -75,7 +76,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <Box sx={{ display: 'flex' }}>
       <AppBar
-        position=\"fixed\"
+        position="fixed"
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
@@ -84,28 +85,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Toolbar>
           {isMobile && (
             <IconButton
-              color=\"inherit\"
-              aria-label=\"open drawer\"
-              edge=\"start\"
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
               onClick={handleDrawerToggle}
               sx={{ mr: 2 }}
             >
               <MenuIcon />
             </IconButton>
           )}
-          <Typography variant=\"h6\" noWrap component=\"div\">
+          <Typography variant="h6" noWrap component="div">
             PII Data Labeling System
           </Typography>
         </Toolbar>
       </AppBar>
 
       <Box
-        component=\"nav\"
+        component="nav"
         sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
       >
         {isMobile ? (
           <Drawer
-            variant=\"temporary\"
+            variant="temporary"
             open={mobileOpen}
             onClose={handleDrawerToggle}
             ModalProps={{
@@ -122,7 +123,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Drawer>
         ) : (
           <Drawer
-            variant=\"permanent\"
+            variant="permanent"
             sx={{
               '& .MuiDrawer-paper': {
                 boxSizing: 'border-box',
@@ -137,7 +138,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </Box>
 
       <Box
-        component=\"main\"
+        component="main"
         sx={{
           flexGrow: 1,
           p: 3,
@@ -145,7 +146,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           mt: 8,
         }}
       >
-        <Container maxWidth=\"xl\">
+        <Container maxWidth="xl">
           {children}
         </Container>
       </Box>

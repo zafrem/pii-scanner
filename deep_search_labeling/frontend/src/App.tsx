@@ -35,6 +35,22 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  // Handler functions for the labeling interface
+  const handleSave = (entities: any[]) => {
+    console.log('Saving entities:', entities);
+    // TODO: Implement actual save functionality
+  };
+
+  const handleNext = () => {
+    console.log('Moving to next sample');
+    // TODO: Implement navigation to next sample
+  };
+
+  const handlePrevious = () => {
+    console.log('Moving to previous sample');
+    // TODO: Implement navigation to previous sample
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
@@ -44,7 +60,16 @@ function App() {
             <Routes>
               <Route path="/" element={<ProjectList />} />
               <Route path="/projects" element={<ProjectList />} />
-              <Route path="/projects/:projectId/label" element={<LabelingInterface />} />
+              <Route 
+                path="/projects/:projectId/label" 
+                element={
+                  <LabelingInterface 
+                    onSave={handleSave}
+                    onNext={handleNext}
+                    onPrevious={handlePrevious}
+                  />
+                } 
+              />
               <Route path="/projects/:projectId/settings" element={<ProjectSettings />} />
               <Route path="/projects/:projectId/analytics" element={<Analytics />} />
               <Route path="/projects/:projectId/export" element={<ExportData />} />
