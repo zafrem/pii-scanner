@@ -4,7 +4,9 @@ import {
   SearchRequest, 
   Language, 
   SearchStage, 
-  StageProgress 
+  StageProgress,
+  BasicSearchResponse,
+  ProbabilitySearchResponse
 } from '../types';
 import { searchAPI, APIError } from '../services/api';
 
@@ -12,7 +14,7 @@ const initialState: SearchState = {
   stage: 1,
   isLoading: false,
   text: '',
-  selectedLanguages: [],
+  selectedLanguages: ['korean', 'english', 'chinese', 'japanese', 'spanish', 'french'],
   results: {},
   error: undefined
 };
@@ -59,11 +61,9 @@ export const useSearch = () => {
     setState(prev => ({ ...prev, isLoading: true, error: undefined }));
 
     try {
-      let result;
-      
       switch (stage) {
-        case 1:
-          result = await searchAPI.basic(request);
+        case 1: {
+          const result: BasicSearchResponse = await searchAPI.basic(request);
           setState(prev => ({
             ...prev,
             results: { ...prev.results, stage1: result },
@@ -71,9 +71,10 @@ export const useSearch = () => {
             isLoading: false
           }));
           break;
+        }
         
-        case 2:
-          result = await searchAPI.deep(request);
+        case 2: {
+          const result: ProbabilitySearchResponse = await searchAPI.deep(request);
           setState(prev => ({
             ...prev,
             results: { ...prev.results, stage2: result },
@@ -81,15 +82,17 @@ export const useSearch = () => {
             isLoading: false
           }));
           break;
+        }
         
-        case 3:
-          result = await searchAPI.context(request);
+        case 3: {
+          const result: ProbabilitySearchResponse = await searchAPI.context(request);
           setState(prev => ({
             ...prev,
             results: { ...prev.results, stage3: result },
             isLoading: false
           }));
           break;
+        }
       }
     } catch (error) {
       let errorMessage = 'An unexpected error occurred';

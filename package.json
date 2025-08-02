@@ -4,6 +4,7 @@
   "description": "Multi-language PII detection system with 3-stage sequential execution",
   "main": "index.js",
   "scripts": {
+    "start": "npm run dev",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",

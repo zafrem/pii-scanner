@@ -53,6 +53,7 @@ export interface ResultSummary {
 
 export interface ProbabilitySummary {
   totalItems: number;
+  detectedItems?: number;
   highConfidenceItems: number;
   mediumConfidenceItems: number;
   lowConfidenceItems: number;
@@ -70,6 +71,7 @@ export interface BasicSearchResponse {
 }
 
 export interface ProbabilitySearchResponse {
+  stage?: 2 | 3;
   stages: number[];
   method: string;
   items: ProbabilitySearchItem[];

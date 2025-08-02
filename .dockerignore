@@ -1,0 +1,61 @@
+# Git
+.git
+.gitignore
+
+# Node.js
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+frontend/build
+backend/dist
+dist
+
+# Environment files
+.env
+.env.*
+
+# Logs
+logs
+*.log
+
+# IDE and OS
+.DS_Store
+.vscode
+.idea
+*.swp
+*.swo
+
+# Test files
+**/*.test.js
+**/*.spec.js
+**/__tests__
+**/__mocks__
+coverage
+.nyc_output
+
+# Documentation
+docs
+*.md
+LICENSE
+
+# Temporary files
+.tmp
+.temp
+tmp
+temp
+
+# Development scripts
+*.sh
+
+# Python related
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+.tox/
+.eggs/
+*.egg-info/
