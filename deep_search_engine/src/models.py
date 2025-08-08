@@ -2,17 +2,9 @@ from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
 
-class PIIType(str, Enum):
-    PHONE = "phone"
-    EMAIL = "email"
-    SSN = "ssn"
-    CREDIT_CARD = "credit_card"
-    NAME = "name"
-    ADDRESS = "address"
-    ORGANIZATION = "organization"
-    DATE = "date"
-    ID_NUMBER = "id_number"
-    POSTAL_CODE = "postal_code"
+class PIIClassification(str, Enum):
+    PII = "pii"
+    NON_PII = "non_pii"
 
 class ConfidenceLevel(str, Enum):
     HIGH = "high"
@@ -25,10 +17,11 @@ class Position:
     end: int
 
 @dataclass
-class PIIEntity:
+class PIIClassificationResult:
     id: str
     text: str
-    type: PIIType
+    type: str  # PII type (name, email, phone, etc.)
+    classification: PIIClassification
     language: str
     position: Position
     probability: float
@@ -47,7 +40,7 @@ class DeepSearchRequest:
 class DeepSearchResponse:
     stage: int = 2
     method: str = "deep_learning"
-    items: List[PIIEntity] = None
+    items: List[PIIClassificationResult] = None
     summary: Dict[str, Any] = None
     processing_time: float = 0.0
     model_info: Dict[str, str] = None
@@ -65,17 +58,21 @@ class DeepSearchResponse:
         if not self.items:
             return {
                 "totalItems": 0,
+                "detectedItems": 0,
                 "highConfidenceItems": 0,
                 "mediumConfidenceItems": 0,
                 "lowConfidenceItems": 0,
                 "averageProbability": 0.0,
                 "languageBreakdown": {},
-                "typeBreakdown": {}
+                "classificationBreakdown": {}
             }
         
         high_conf = sum(1 for item in self.items if item.confidence_level == ConfidenceLevel.HIGH)
         medium_conf = sum(1 for item in self.items if item.confidence_level == ConfidenceLevel.MEDIUM)
         low_conf = sum(1 for item in self.items if item.confidence_level == ConfidenceLevel.LOW)
+        
+        # Count PII items as "detected items"
+        detected_items = sum(1 for item in self.items if item.classification == PIIClassification.PII)
         
         avg_prob = sum(item.probability for item in self.items) / len(self.items)
         
@@ -84,19 +81,20 @@ class DeepSearchResponse:
         for item in self.items:
             lang_breakdown[item.language] = lang_breakdown.get(item.language, 0) + 1
         
-        # Type breakdown
-        type_breakdown = {}
+        # Classification breakdown
+        classification_breakdown = {}
         for item in self.items:
-            type_breakdown[item.type.value] = type_breakdown.get(item.type.value, 0) + 1
+            classification_breakdown[item.classification.value] = classification_breakdown.get(item.classification.value, 0) + 1
         
         return {
             "totalItems": len(self.items),
+            "detectedItems": detected_items,
             "highConfidenceItems": high_conf,
             "mediumConfidenceItems": medium_conf,
             "lowConfidenceItems": low_conf,
             "averageProbability": round(avg_prob, 3),
             "languageBreakdown": lang_breakdown,
-            "typeBreakdown": type_breakdown
+            "classificationBreakdown": classification_breakdown
         }
 
 @dataclass

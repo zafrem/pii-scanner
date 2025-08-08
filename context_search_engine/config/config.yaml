@@ -6,7 +6,7 @@ server:
 
 ollama:
   host: "http://localhost:11434"
-  default_model: "llama3.2:3b"
+  default_model: "llama3.2:1b"
   timeout: 30
   max_retries: 3
   
@@ -29,12 +29,13 @@ languages:
   
   # Model preferences by language
   model_preferences:
-    chinese: "qwen2.5:3b"
-    japanese: "qwen2.5:3b"
-    korean: "qwen2.5:3b"
-    english: "llama3.2:3b"
-    spanish: "llama3.2:3b"
-    french: "llama3.2:3b"
+    chinese: "llama3.2:1b"
+    japanese: "llama3.2:1b"
+    korean: "llama3.2:1b"
+    english: "llama3.2:1b"
+    spanish: "llama3.2:1b"
+    french: "llama3.2:1b"
+    universal: "llama3.2:1b"
 
 analysis:
   context_window_size: 300
@@ -84,19 +85,15 @@ prompts:
     Consider context, intent, and privacy implications in your analysis.
     
   context_analysis: |
-    Analyze this text snippet to determine if the highlighted entity represents genuine PII:
+    Analyze if "{entity}" is genuine personal information in this context:
     
     Text: "{text}"
     Entity: "{entity}" (Type: {type})
-    Position: characters {start}-{end}
     
-    Consider:
-    1. Is this referring to a real person/organization?
-    2. What is the surrounding context?
-    3. Could this be fictional, example, or reference content?
-    4. What is the privacy risk if this is genuine PII?
+    Is this likely to be real personal information (not fictional, example, or generic text)?
     
-    Respond with JSON: {{"is_genuine_pii": boolean, "confidence": float, "reason": string, "risk_level": string}}
+    Respond in JSON format:
+    {{"is_genuine_pii": true, "confidence": 0.8, "reason": "This appears to be a real person's name", "risk_level": "medium"}}
   
   false_positive_detection: |
     Determine if this detected entity is a false positive:

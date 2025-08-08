@@ -8,7 +8,9 @@ interface SearchControlsProps {
   onStartSearch: () => void;
   onNextStage: () => void;
   onReset: () => void;
+  onOpenLabeling?: () => void;
   disabled?: boolean;
+  hasStage2Results?: boolean;
 }
 
 const SearchControls: React.FC<SearchControlsProps> = ({
@@ -18,7 +20,9 @@ const SearchControls: React.FC<SearchControlsProps> = ({
   onStartSearch,
   onNextStage,
   onReset,
-  disabled = false
+  onOpenLabeling,
+  disabled = false,
+  hasStage2Results = false
 }) => {
   const getButtonText = (): string => {
     if (isLoading) {
@@ -88,6 +92,17 @@ const SearchControls: React.FC<SearchControlsProps> = ({
             Reset Search
           </button>
         )}
+        
+        {/* Labeling Button - Show only after Deep Search (stage 2) is completed */}
+        {hasStage2Results && !isLoading && onOpenLabeling && (
+          <button
+            onClick={onOpenLabeling}
+            className="px-4 py-3 rounded-lg font-medium bg-purple-600 text-white hover:bg-purple-700 transition-all duration-200 flex items-center space-x-2"
+          >
+            <span>📝</span>
+            <span>Open Labeling</span>
+          </button>
+        )}
       </div>
 
       <div className="flex items-center space-x-4 text-sm text-gray-600">
@@ -95,6 +110,13 @@ const SearchControls: React.FC<SearchControlsProps> = ({
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-success rounded-full"></div>
             <span>Stage {currentStage - 1} completed</span>
+          </div>
+        )}
+        
+        {hasStage2Results && !isLoading && (
+          <div className="flex items-center space-x-2 text-purple-600">
+            <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+            <span>Labeling available</span>
           </div>
         )}
         

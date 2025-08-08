@@ -14,17 +14,9 @@ project_annotators = Table(
     Column('annotator_id', String, ForeignKey('annotators.id'))
 )
 
-class PIITypeEnum(enum.Enum):
-    NAME = "name"
-    EMAIL = "email"
-    PHONE = "phone"
-    ADDRESS = "address"
-    ID_NUMBER = "id_number"
-    CREDIT_CARD = "credit_card"
-    ORGANIZATION = "organization"
-    DATE = "date"
-    POSTAL_CODE = "postal_code"
-    CUSTOM = "custom"
+class PIIClassificationEnum(enum.Enum):
+    PII = "pii"
+    NON_PII = "non_pii"
 
 class SampleStatusEnum(enum.Enum):
     PENDING = "pending"
@@ -80,7 +72,7 @@ class Annotator(Base):
     
     # Relationships
     projects = relationship("Project", secondary=project_annotators, back_populates="annotators")
-    entities = relationship("PIIEntity", back_populates="annotator")
+    classifications = relationship("PIIClassification", back_populates="annotator")
     sessions = relationship("AnnotationSession", back_populates="annotator")
 
 class TextSample(Base):
@@ -98,11 +90,11 @@ class TextSample(Base):
     
     # Relationships
     project = relationship("Project", back_populates="samples")
-    entities = relationship("PIIEntity", back_populates="sample")
+    classifications = relationship("PIIClassification", back_populates="sample")
     sessions = relationship("AnnotationSession", back_populates="sample")
 
-class PIIEntity(Base):
-    __tablename__ = "pii_entities"
+class PIIClassification(Base):
+    __tablename__ = "pii_classifications"
     
     id = Column(String, primary_key=True)
     sample_id = Column(String, ForeignKey('text_samples.id'), nullable=False)
@@ -110,15 +102,15 @@ class PIIEntity(Base):
     start = Column(Integer, nullable=False)
     end = Column(Integer, nullable=False)
     text = Column(String, nullable=False)
-    type = Column(String, nullable=False)  # PIITypeEnum
+    classification = Column(String, nullable=False)  # PIIClassificationEnum
     confidence = Column(Float, default=0.8)
     notes = Column(Text)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    sample = relationship("TextSample", back_populates="entities")
-    annotator = relationship("Annotator", back_populates="entities")
+    sample = relationship("TextSample", back_populates="classifications")
+    annotator = relationship("Annotator", back_populates="classifications")
 
 class AnnotationSession(Base):
     __tablename__ = "annotation_sessions"

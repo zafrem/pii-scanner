@@ -1,13 +1,20 @@
 # PII Scanner
 
-A comprehensive multi-language PII detection system with 3-stage sequential execution using rule-based matching, deep learning, and LLM-powered context analysis.
+A comprehensive multi-language PII detection system with 3-stage sequential execution using rule-based matching, ML binary classification, and LLM-powered context analysis. Features sentence-level processing, accumulated results display, and integrated labeling system for continuous learning.
 
 ## Project Overview
 
 This application provides progressive PII detection with three specialized stages:
-1. **Basic Search** - Rule-based pattern matching (✅ Implemented)
-2. **Deep Search** - Deep learning NER with transformers (🙇🏻 Testing in progress)
-3. **Context Search** - LLM-powered context validation with Ollama (🙇🏻 Testing in progress)
+1. **Basic Search** - Rule-based pattern matching with traditional PII types (✅ Implemented)
+2. **Deep Search** - ML binary classification (PII/Non-PII) with sentence-level processing (✅ Implemented)
+3. **Context Search** - LLM-powered context validation with Ollama (✅ Implemented)
+
+### Key Features
+- **📊 Accumulated Results Display**: All stages display results in order (Stage 3 → 2 → 1)
+- **🔤 Sentence-Level Processing**: Deep Search segments text and classifies each sentence
+- **☑️ Interactive Selection**: Click-to-select sentences for labeling system
+- **🏷️ Integrated Labeling System**: Continuous learning workflow with selected results
+- **🎯 Binary Classification**: Simplified PII/Non-PII categorization for better ML accuracy
 
 ## Pre-view
 ![Demo](./image/PIIScanner.gif)
@@ -18,11 +25,15 @@ This application provides progressive PII detection with three specialized stage
 pii-scanner/
 ├── frontend/          # React TypeScript application with Tailwind CSS
 ├── backend/           # Express TypeScript server
-├── deep_search/       # Python deep learning engine (✅ Complete)
-│   ├── src/          # Core engine implementation
-│   ├── models/       # Trained model files
+├── deep_search_engine/ # Python ML binary classification engine (✅ Complete)
+│   ├── src/          # Core engine implementation with Simple Learning Engine
+│   ├── models/       # Binary classification models (PII/Non-PII)
 │   ├── config/       # Configuration files
 │   └── tests/        # Unit tests
+├── deep_search_labeling/ # Integrated labeling system (✅ Complete)
+│   ├── backend/      # FastAPI labeling backend
+│   ├── frontend/     # React labeling interface
+│   └── data/         # Training data storage
 ├── context_search/    # Python LLM-powered context engine (✅ Complete)
 │   ├── src/          # Core engine implementation
 │   ├── prompts/      # LLM prompt templates
@@ -58,12 +69,14 @@ pii-scanner/
 - Credit card validation with Luhn check
 - Postal code detection
 
-### Stage 2: Deep Search Engine ✅
-- 🧠 **Multi-language NER** using spaCy + Hugging Face transformers
-- 🎯 **Advanced entity recognition** with BERT-based models
-- 📊 **Confidence scoring** and probability assessment
-- 🌍 **Cross-lingual support** with multilingual BERT
-- 🔄 **Model training/fine-tuning** capabilities
+### Stage 2: Deep Search Engine (ML Binary Classification) ✅
+- 🎯 **Binary Classification**: Simplified PII/Non-PII categorization for better accuracy
+- 🔤 **Sentence-Level Processing**: NER segmentation with individual sentence classification
+- 🧠 **Simple Learning Engine**: TF-IDF + Logistic Regression for fast, accurate results
+- 📊 **Confidence scoring** and probability assessment per sentence
+- ☑️ **Interactive Selection**: Click-to-select sentences for labeling workflow
+- 🏷️ **Labeling Integration**: Selected sentences sent to labeling system for training
+- 🔄 **Continuous Learning**: Periodic retraining with labeled data
 - 🚀 **FastAPI server** with async processing
 - 📈 **Performance monitoring** and health checks
 
@@ -77,22 +90,59 @@ pii-scanner/
 - ⚡ **High-performance** async processing with throttling
 
 ### Frontend Components ✅
-- Language selector with multi-select
-- Text input with character limit validation
-- Progress indicator showing 3-stage workflow
-- Search controls with sequential button activation
-- Results visualization
-- Error handling and user feedback
+- **Language selector** with multi-select (6 languages supported)
+- **Text input** with character limit validation and loading states
+- **Progress indicator** showing 3-stage workflow with completion status
+- **Search controls** with sequential button activation and labeling integration
+- **Accumulated results display** showing all stages in reverse order (3→2→1)
+- **Sentence-level UI** with checkboxes and selection controls for Stage 2
+- **Interactive labeling** with "Send to Labeling" functionality
+- **Visual distinction** between stages with color-coded borders
+- **Error handling** and comprehensive user feedback
 
 ### Backend API ✅
-- `/api/search/basic` - Stage 1 rule-based search
-- `/api/search/deep` - Stage 2 deep learning search
+- `/api/search/basic` - Stage 1 rule-based search with traditional PII types
+- `/api/search/deep` - Stage 2 ML binary classification with sentence processing
 - `/api/search/context` - Stage 3 context validation search
 - `/api/patterns/:language` - Language pattern retrieval
 - `/api/health` - Health check endpoint
-- Input validation and sanitization
-- Rate limiting (30 requests/minute)
-- Security headers and CORS
+- **Input validation** and sanitization across all stages
+- **Rate limiting** (30 requests/minute) with configurable throttling
+- **Security headers** and CORS protection
+- **TypeScript safety** with comprehensive error handling
+
+## New Features & Updates
+
+### 🆕 Recent Major Updates
+
+#### Accumulated Results Display
+- **Progressive visualization**: All completed stages display simultaneously
+- **Reverse order layout**: Stage 3 → Stage 2 → Stage 1 for priority-based viewing
+- **Color-coded stages**: Purple (Stage 3), Green (Stage 2), Blue (Stage 1)
+- **Persistent results**: Previous stage results remain visible as you progress
+
+#### Binary Classification System
+- **Simplified categorization**: Changed from multi-class PII types to binary PII/Non-PII
+- **Improved accuracy**: Binary classification provides better ML model performance
+- **Enhanced user experience**: Clearer decision boundaries for users
+
+#### Sentence-Level Deep Search
+- **NER segmentation**: Automatic sentence boundary detection
+- **Individual classification**: Each sentence gets its own PII/Non-PII classification
+- **Confidence scoring**: Per-sentence probability assessment
+- **Interactive selection**: Click-to-select sentences with visual feedback
+
+#### Integrated Labeling System
+- **Smart activation**: "Open Labeling" button appears only after Deep Search completion
+- **Bulk selection tools**: "Select All PII", "Select All Non-PII", "Clear Selection"
+- **Visual indicators**: Selected sentences highlighted with purple borders
+- **Seamless workflow**: Selected sentences automatically formatted for labeling system
+
+#### Enhanced UI/UX
+- **Input state management**: Text input disabled during active searches
+- **Loading state feedback**: Clear indicators for each processing stage  
+- **Progress visualization**: Enhanced progress indicator with completion status
+- **Error boundary handling**: Comprehensive error states and user guidance
 
 ## Quick Start
 
@@ -207,15 +257,42 @@ curl -X POST http://localhost:3001/api/search/basic \
   }'
 ```
 
-**Stage 2 - Deep Search (ML/NER):**
+**Stage 2 - Deep Search (ML Binary Classification):**
 ```bash
-curl -X POST http://localhost:8000/search \
+curl -X POST http://localhost:3001/api/search/deep \
   -H "Content-Type: application/json" \
   -d '{
     "text": "Dr. Sarah Johnson works at Microsoft. Email: sarah.johnson@microsoft.com",
     "languages": ["english"],
-    "confidence_threshold": 0.7
+    "maxCharacters": 10000
   }'
+```
+
+**Response includes sentence-level classifications:**
+```json
+{
+  "success": true,
+  "data": {
+    "stage": 2,
+    "method": "ml_classification",
+    "items": [
+      {
+        "id": "seg1",
+        "text": "Dr. Sarah Johnson works at Microsoft.",
+        "classification": "pii",
+        "probability": 0.87,
+        "position": {"start": 0, "end": 37}
+      },
+      {
+        "id": "seg2", 
+        "text": "Email: sarah.johnson@microsoft.com",
+        "classification": "pii",
+        "probability": 0.95,
+        "position": {"start": 38, "end": 73}
+      }
+    ]
+  }
+}
 ```
 
 **Stage 3 - Context Search (LLM Analysis):**
@@ -250,12 +327,14 @@ curl http://localhost:3001/api/patterns/korean
 - **Detection**: Custom regex engines, validation algorithms
 - **Patterns**: Multi-language regex patterns (6 languages)
 
-### Stage 2: Deep Search Engine  
+### Stage 2: Deep Search Engine (Binary Classification)
 - **Language**: Python 3.8+
-- **ML Framework**: PyTorch, Hugging Face Transformers
-- **NLP**: spaCy, NLTK, multilingual BERT models
+- **ML Framework**: scikit-learn (TF-IDF + Logistic Regression)
+- **NLP**: NLTK for sentence segmentation
 - **API**: FastAPI, Uvicorn
-- **Models**: BERT-base-multilingual-cased, language-specific spaCy models
+- **Classification**: Binary PII/Non-PII with Simple Learning Engine
+- **Processing**: Sentence-level segmentation and individual classification
+- **Learning**: Incremental learning with user-selected training data
 
 ### Stage 3: Context Search Engine
 - **Language**: Python 3.8+
@@ -269,7 +348,7 @@ curl http://localhost:3001/api/patterns/korean
 | Stage | Engine | Response Time | Memory Usage | Throughput | Accuracy |
 |-------|--------|---------------|--------------|------------|----------|
 | 1 | Rule-based | <500ms | <100MB | 100+ req/s | 85-90% |
-| 2 | Deep Learning | 1-3s | 2-8GB | 10-50 req/s | 90-95% |  
+| 2 | ML Binary Classification | 500ms-1.5s | <500MB | 50-100 req/s | 90-95% |  
 | 3 | LLM Context | 2-5s | 1-4GB | 5-20 req/s | 95-99% |
 
 **System Requirements:**
@@ -278,17 +357,72 @@ curl http://localhost:3001/api/patterns/korean
 - GPU recommended for Stage 2 (optional)
 - Local models ensure data privacy
 
+## User Workflow
+
+### Step-by-Step Process
+
+1. **Text Input & Language Selection**
+   - Enter text (up to 10,000 characters)
+   - Select target languages (multi-select from 6 options)
+   - Text input disabled during processing for safety
+
+2. **Stage 1: Basic Search**
+   - Click "Start Basic Search" 
+   - Rule-based pattern matching executes
+   - Results display immediately with PII type classifications
+   - Blue-bordered results section appears
+
+3. **Stage 2: Deep Search** 
+   - "Continue to Deep Search" button becomes available
+   - ML binary classification processes entire text
+   - Text automatically segmented into sentences
+   - Each sentence classified as PII/Non-PII with confidence scores
+   - Green-bordered results section with interactive checkboxes
+   - "Open Labeling" button appears after completion
+
+4. **Interactive Labeling Selection**
+   - Click individual sentences or use bulk selection tools
+   - "Select All PII" / "Select All Non-PII" / "Clear Selection"
+   - Selected sentences highlighted with purple borders
+   - "Send to Labeling" processes selected segments
+
+5. **Stage 3: Context Search**
+   - "Continue to Context Search" button becomes available
+   - LLM analyzes context and validates detections
+   - Purple-bordered results section appears at top
+   - All three stages visible simultaneously
+
+### Visual Result Layout
+```
+┌─ Stage 3: Context Search (Purple border) ─┐
+│ LLM-validated results with context        │
+└────────────────────────────────────────────┘
+
+┌─ Stage 2: Deep Search (Green border) ──────┐
+│ ☑️ Sentence 1: "John works here" - PII     │
+│ ☐ Sentence 2: "The weather is nice" - Non  │
+│ [Select All PII] [Send to Labeling]        │
+└────────────────────────────────────────────┘
+
+┌─ Stage 1: Basic Search (Blue border) ──────┐
+│ Email: john@example.com - Detected ✓       │
+│ Phone: 555-123-4567 - Detected ✓           │
+└────────────────────────────────────────────┘
+```
+
 ## Current Status
 
 ### ✅ Completed (All Phases)
-- **Stage 1**: Rule-based detection engine with 6 language support
-- **Stage 2**: Deep learning NER engine with transformer models
+- **Stage 1**: Rule-based detection engine with 6 language support and traditional PII types
+- **Stage 2**: ML binary classification engine with sentence-level processing and labeling integration
 - **Stage 3**: LLM-powered context analysis with Ollama integration
-- Frontend UI with 3-stage sequential workflow
-- Backend API with all three search endpoints
-- Advanced prompt engineering for context validation
-- Multi-language support across all stages
-- Performance monitoring and health checks
+- **Frontend UI**: Complete 3-stage workflow with accumulated results display
+- **Sentence-Level Processing**: NER segmentation with interactive selection and labeling
+- **Labeling System**: Integrated continuous learning workflow with user selection
+- **Backend API**: All three search endpoints with TypeScript safety
+- **Enhanced UX**: Input state management, visual feedback, and error handling
+- **Multi-language support** across all stages with 6 languages
+- **Performance monitoring** and comprehensive health checks
 
 ### 🔄 Available for Enhancement
 - Docker containerization for easy deployment

@@ -16,55 +16,65 @@ trap cleanup SIGINT SIGTERM
 # Create log directory
 mkdir -p logs
 
-# Check and install backend dependencies
-echo "🔧 Checking backend dependencies..."
+echo "🐍 Starting backend (Port 8002)..."
 cd backend
+
+# Check if virtual environment exists
 if [ ! -d "venv" ]; then
     echo "❌ Backend virtual environment not found. Please run setup.sh first."
     exit 1
 fi
-source venv/bin/activate
-cd ..
 
-# Check and install frontend dependencies
-echo "🔧 Checking frontend dependencies..."
-cd frontend
-if [ ! -d "node_modules" ] || [ ! -f "node_modules/.bin/react-scripts" ]; then
-    echo "📦 Installing frontend dependencies..."
-    npm install
-    if [ $? -ne 0 ]; then
-        echo "❌ Failed to install frontend dependencies"
-        exit 1
-    fi
+source venv/bin/activate
+
+# Check if required packages are installed
+python -c "import uvicorn, fastapi, sqlalchemy" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo "❌ Required backend packages not found. Installing..."
+    pip install -r requirements.txt
 fi
 
-# Verify react-scripts is properly installed
-if ! npm list react-scripts | grep -q "react-scripts@[1-9]"; then
-    echo "🔄 Fixing react-scripts installation..."
-    npm install react-scripts@5.0.1
-    if [ $? -ne 0 ]; then
-        echo "❌ Failed to install react-scripts"
-        exit 1
-    fi
-fi
-cd ..
-
-echo "🐍 Starting backend (Port 8002)..."
-cd backend
-source venv/bin/activate
 python start.py > ../logs/labeling_backend.log 2>&1 &
 BACKEND_PID=$!
 echo $BACKEND_PID > ../logs/labeling_backend.pid
-cd ..
 
-# Wait for backend to start
-sleep 3
+# Wait for backend to start and verify it's running
+sleep 5
+if ! kill -0 $BACKEND_PID 2>/dev/null; then
+    echo "❌ Backend failed to start. Check logs/labeling_backend.log"
+    exit 1
+fi
+
+echo "✅ Backend started (PID: $BACKEND_PID)"
+cd ..
 
 echo "⚛️  Starting frontend (Port 3002)..."
 cd frontend
+
+# Check if node_modules exists
+if [ ! -d "node_modules" ]; then
+    echo "❌ Frontend dependencies not found. Installing..."
+    npm install
+fi
+
+# Check if react-scripts is properly installed
+if ! npm list react-scripts > /dev/null 2>&1; then
+    echo "❌ react-scripts not found. Installing..."
+    npm install react-scripts@5.0.1
+fi
+
 BROWSER=none npm start > ../logs/labeling_frontend.log 2>&1 &
 FRONTEND_PID=$!
 echo $FRONTEND_PID > ../logs/labeling_frontend.pid
+
+# Wait for frontend to start and verify it's running
+sleep 10
+if ! kill -0 $FRONTEND_PID 2>/dev/null; then
+    echo "❌ Frontend failed to start. Check logs/labeling_frontend.log"
+    exit 1
+fi
+
+echo "✅ Frontend started (PID: $FRONTEND_PID)"
 cd ..
 
 echo ""

@@ -14,12 +14,12 @@ const stageInfo = {
   },
   2: {
     name: 'Deep Search',
-    description: 'NER and preprocessing',
+    description: 'Binary ML Classification (PII/non-PII)',
     icon: '🧠'
   },
   3: {
     name: 'Context Search',
-    description: 'Context validation',
+    description: 'llama3.2:1b',
     icon: '🎯'
   }
 };

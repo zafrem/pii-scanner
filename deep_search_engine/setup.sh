@@ -33,11 +33,46 @@ pip install --upgrade pip
 echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
-# Download spaCy models
-echo "Downloading spaCy language models..."
-python -m spacy download en_core_web_sm
-python -m spacy download es_core_news_sm
-python -m spacy download fr_core_news_sm
+# Initialize NLTK data
+echo "Initializing NLTK data..."
+python -c "
+import nltk
+import ssl
+
+# Handle SSL issues that can occur with NLTK downloads
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
+
+# Download required NLTK data
+print('Downloading NLTK punkt tokenizer...')
+try:
+    nltk.download('punkt', quiet=True)
+    print('NLTK punkt downloaded successfully')
+except Exception as e:
+    print(f'NLTK punkt download failed: {e}')
+
+try:
+    nltk.download('punkt_tab', quiet=True)
+    print('NLTK punkt_tab downloaded successfully')
+except Exception as e:
+    print(f'NLTK punkt_tab download failed: {e}')
+
+try:
+    nltk.download('stopwords', quiet=True)
+    print('NLTK stopwords downloaded successfully')
+except Exception as e:
+    print(f'NLTK stopwords download failed: {e}')
+"
+
+# Download spaCy models (optional for enhanced NLP features)
+echo "Downloading spaCy language models (optional)..."
+python -m spacy download en_core_web_sm || echo "Warning: English spaCy model not available"
+python -m spacy download es_core_news_sm || echo "Warning: Spanish spaCy model not available"
+python -m spacy download fr_core_news_sm || echo "Warning: French spaCy model not available"
 
 # Try to download additional models (may fail on some systems)
 echo "Attempting to download additional language models..."
@@ -59,8 +94,11 @@ fi
 echo "Setup completed successfully!"
 echo ""
 echo "To start the Deep Search Engine:"
-echo "1. Activate the virtual environment: source venv/bin/activate"
-echo "2. Run the server: python start.py"
+echo "1. Use the start script: ./start.sh"
+echo "   OR"
+echo "2. Manual start:"
+echo "   - Activate virtual environment: source venv/bin/activate"
+echo "   - Run server: python start.py"
 echo ""
 echo "The API will be available at: http://localhost:8000"
 echo "API documentation: http://localhost:8000/docs"

@@ -5,6 +5,7 @@ interface LanguageSelectorProps {
   selectedLanguages: Language[];
   onChange: (languages: Language[]) => void;
   disabled?: boolean;
+  disabledReason?: 'loading' | 'search_active' | 'other';
 }
 
 const languageOptions: LanguageOption[] = [
@@ -19,7 +20,8 @@ const languageOptions: LanguageOption[] = [
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   selectedLanguages,
   onChange,
-  disabled = false
+  disabled = false,
+  disabledReason = 'other'
 }) => {
   const handleLanguageToggle = (language: Language) => {
     if (disabled) return;
@@ -104,7 +106,18 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         })}
       </div>
 
-      {selectedLanguages.length > 0 && (
+      {disabled && disabledReason === 'search_active' && (
+        <div className="flex items-center space-x-2 text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
+          <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs">i</span>
+          </div>
+          <p>
+            Language selection is locked during search analysis. Click "Reset Search" to modify languages.
+          </p>
+        </div>
+      )}
+      
+      {!disabled && selectedLanguages.length > 0 && (
         <div className="text-xs text-gray-600">
           Selected: {selectedLanguages.length} language{selectedLanguages.length !== 1 ? 's' : ''}
         </div>

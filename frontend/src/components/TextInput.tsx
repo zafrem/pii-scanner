@@ -6,6 +6,7 @@ interface TextInputProps {
   disabled?: boolean;
   placeholder?: string;
   maxLength?: number;
+  disabledReason?: 'loading' | 'search_active' | 'other';
 }
 
 const TextInput: React.FC<TextInputProps> = ({
@@ -13,7 +14,8 @@ const TextInput: React.FC<TextInputProps> = ({
   onChange,
   disabled = false,
   placeholder = "Enter text to analyze for PII...",
-  maxLength = 10000
+  maxLength = 10000,
+  disabledReason = 'other'
 }) => {
   const characterCount = value.length;
   const isNearLimit = characterCount > maxLength * 0.9;
@@ -61,7 +63,18 @@ const TextInput: React.FC<TextInputProps> = ({
         </p>
       )}
 
-      {value.length === 0 && (
+      {disabled && disabledReason === 'search_active' && (
+        <div className="flex items-center space-x-2 text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
+          <div className="w-4 h-4 bg-blue-600 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs">i</span>
+          </div>
+          <p>
+            Text input is locked during search analysis. Click "Reset Search" to modify the text and start over.
+          </p>
+        </div>
+      )}
+      
+      {!disabled && value.length === 0 && (
         <p className="text-sm text-gray-500">
           Paste or type text containing potential PII data. Supported formats include:
           phone numbers, emails, names, addresses, ID numbers, and more.

@@ -196,10 +196,10 @@ async def get_text_sample(
         raise HTTPException(status_code=500, detail="Failed to get text sample")
 
 # Entity annotation endpoints
-@app.post("/api/samples/{sample_id}/entities", response_model=PIIEntityResponse)
+@app.post("/api/samples/{sample_id}/entities", response_model=PIIClassificationResponse)
 async def create_entity_annotation(
     sample_id: str,
-    entity: PIIEntityCreate,
+    entity: PIIClassificationCreate,
     db: Session = Depends(get_db),
     current_user: Annotator = Depends(get_current_user)
 ):
@@ -235,17 +235,17 @@ async def create_entity_annotation(
         db.commit()
         db.refresh(db_entity)
         
-        return PIIEntityResponse.from_orm(db_entity)
+        return PIIClassificationResponse.from_orm(db_entity)
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to create entity annotation: {e}")
         raise HTTPException(status_code=500, detail="Failed to create entity annotation")
 
-@app.put("/api/entities/{entity_id}", response_model=PIIEntityResponse)
+@app.put("/api/entities/{entity_id}", response_model=PIIClassificationResponse)
 async def update_entity_annotation(
     entity_id: str,
-    entity_update: PIIEntityUpdate,
+    entity_update: PIIClassificationUpdate,
     db: Session = Depends(get_db),
     current_user: Annotator = Depends(get_current_user)
 ):
@@ -266,7 +266,7 @@ async def update_entity_annotation(
         db.commit()
         db.refresh(db_entity)
         
-        return PIIEntityResponse.from_orm(db_entity)
+        return PIIClassificationResponse.from_orm(db_entity)
     except HTTPException:
         raise
     except Exception as e:

@@ -8,8 +8,8 @@ import Layout from './components/Layout';
 import ProjectList from './components/ProjectList';
 import LabelingInterface from './components/LabelingInterface';
 import ProjectSettings from './components/ProjectSettings';
-import Analytics from './components/Analytics';
-import ExportData from './components/ExportData';
+import SimpleAnalysisMenu from './components/SimpleAnalysisMenu';
+import ExportTrainingData from './components/ExportTrainingData';
 
 const theme = createTheme({
   palette: {
@@ -71,8 +71,9 @@ function App() {
                 } 
               />
               <Route path="/projects/:projectId/settings" element={<ProjectSettings />} />
-              <Route path="/projects/:projectId/analytics" element={<Analytics />} />
-              <Route path="/projects/:projectId/export" element={<ExportData />} />
+              <Route path="/projects/:projectId/analytics" element={<SimpleAnalysisMenu />} />
+              <Route path="/analytics" element={<SimpleAnalysisMenu />} />
+              <Route path="/export-training" element={<ExportTrainingData />} />
             </Routes>
           </Layout>
         </Router>

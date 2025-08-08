@@ -1,10 +1,10 @@
 # Deep Search Engine
 
-A deep learning-based PII detection engine that provides advanced Named Entity Recognition (NER) and context-aware detection capabilities.
+A deep learning-based PII detection engine that provides binary ML Classification (PII/non-PII) and context-aware detection capabilities.
 
 ## Features
 
-- Multi-language NER models
+- Multi-language binary ML Classification models (PII/non-PII)
 - Context-aware PII detection
 - Probability scoring
 - Model training and fine-tuning

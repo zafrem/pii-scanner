@@ -29,8 +29,8 @@ class Config:
             },
             "ollama": {
                 "host": "http://localhost:11434",
-                "default_model": "llama3.2:3b",
-                "timeout": 30,
+                "default_model": "llama3.2:1b",
+                "timeout": 60,
                 "max_retries": 3
             },
             "analysis": {

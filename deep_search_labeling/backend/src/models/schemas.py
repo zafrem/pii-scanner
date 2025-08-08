@@ -3,17 +3,9 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 from enum import Enum
 
-class PIITypeEnum(str, Enum):
-    NAME = "name"
-    EMAIL = "email"
-    PHONE = "phone"
-    ADDRESS = "address"
-    ID_NUMBER = "id_number"
-    CREDIT_CARD = "credit_card"
-    ORGANIZATION = "organization"
-    DATE = "date"
-    POSTAL_CODE = "postal_code"
-    CUSTOM = "custom"
+class PIIClassificationEnum(str, Enum):
+    PII = "pii"
+    NON_PII = "non_pii"
 
 class SampleStatusEnum(str, Enum):
     PENDING = "pending"
@@ -42,11 +34,11 @@ class ExportFormatEnum(str, Enum):
     CSV = "csv"
 
 # Base schemas
-class PIIEntityBase(BaseModel):
+class PIIClassificationBase(BaseModel):
     start: int
     end: int
     text: str
-    type: PIITypeEnum
+    classification: PIIClassificationEnum
     confidence: float = 0.8
     notes: Optional[str] = None
 
@@ -56,18 +48,18 @@ class PIIEntityBase(BaseModel):
             raise ValueError('Confidence must be between 0.0 and 1.0')
         return v
 
-class PIIEntityCreate(PIIEntityBase):
+class PIIClassificationCreate(PIIClassificationBase):
     pass
 
-class PIIEntityUpdate(BaseModel):
+class PIIClassificationUpdate(BaseModel):
     start: Optional[int] = None
     end: Optional[int] = None
     text: Optional[str] = None
-    type: Optional[PIITypeEnum] = None
+    classification: Optional[PIIClassificationEnum] = None
     confidence: Optional[float] = None
     notes: Optional[str] = None
 
-class PIIEntityResponse(PIIEntityBase):
+class PIIClassificationResponse(PIIClassificationBase):
     id: str
     sample_id: str
     annotator_id: str
@@ -98,7 +90,7 @@ class TextSampleResponse(TextSampleBase):
         from_attributes = True
 
 class TextSampleDetailResponse(TextSampleResponse):
-    entities: List[PIIEntityResponse] = []
+    classifications: List[PIIClassificationResponse] = []
 
     class Config:
         from_attributes = True

@@ -1,9 +1,9 @@
-export interface PIIEntity {
+export interface PIIClassificationItem {
   id: string;
   start: number;
   end: number;
   text: string;
-  type: PIIType;
+  classification: PIIClassification;
   confidence: number;
   notes?: string;
   annotatorId: string;
@@ -18,7 +18,7 @@ export interface TextSample {
   filename?: string;
   language: string;
   status: SampleStatus;
-  entities: PIIEntity[];
+  classifications: PIIClassificationItem[];
   annotatorIds: string[];
   qualityScore?: number;
   createdAt: Date;
@@ -29,7 +29,7 @@ export interface Project {
   id: string;
   name: string;
   description: string;
-  entityTypes: PIIType[];
+  classificationTypes: PIIClassification[];
   guidelines: string;
   status: ProjectStatus;
   createdBy: string;
@@ -81,23 +81,15 @@ export interface ExportConfig {
 export interface QualityMetrics {
   interAnnotatorAgreement: number;
   cohensKappa: number;
-  entityDistribution: Record<PIIType, number>;
+  classificationDistribution: Record<PIIClassification, number>;
   annotatorPerformance: Record<string, number>;
   completionRate: number;
   averageTime: number;
 }
 
-export enum PIIType {
-  NAME = 'name',
-  EMAIL = 'email',
-  PHONE = 'phone',
-  ADDRESS = 'address',
-  ID_NUMBER = 'id_number',
-  CREDIT_CARD = 'credit_card',
-  ORGANIZATION = 'organization',
-  DATE = 'date',
-  POSTAL_CODE = 'postal_code',
-  CUSTOM = 'custom'
+export enum PIIClassification {
+  PII = 'pii',
+  NON_PII = 'non_pii'
 }
 
 export enum SampleStatus {
@@ -147,7 +139,7 @@ export interface APIResponse<T> {
 }
 
 export interface LabelingState {
-  selectedEntity: PIIEntity | null;
+  selectedClassification: PIIClassificationItem | null;
   selectedText: {
     start: number;
     end: number;
@@ -156,11 +148,11 @@ export interface LabelingState {
   currentSample: TextSample | null;
   isEditing: boolean;
   showGuidelines: boolean;
-  keyboardShortcuts: Record<string, PIIType>;
+  keyboardShortcuts: Record<string, PIIClassification>;
 }
 
 export interface AnnotationAction {
-  type: 'ADD_ENTITY' | 'UPDATE_ENTITY' | 'DELETE_ENTITY' | 'CLEAR_SELECTION';
+  type: 'ADD_CLASSIFICATION' | 'UPDATE_CLASSIFICATION' | 'DELETE_CLASSIFICATION' | 'CLEAR_SELECTION';
   payload?: any;
 }
 

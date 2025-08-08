@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
 import { createLogger, format, transports } from 'winston';
 import searchRoutes from './routes/search';
 import patternRoutes from './routes/patterns';
@@ -71,6 +72,12 @@ app.get('/api/health', (_req, res) => {
     version: process.env.npm_package_version || '1.0.0',
     uptime: process.uptime()
   });
+});
+
+// Serve API documentation
+app.get('/api-documentation.html', (_req, res) => {
+  const documentationPath = path.join(__dirname, '../../api-documentation.html');
+  res.sendFile(documentationPath);
 });
 
 app.use(errorHandler);

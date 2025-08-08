@@ -1,7 +1,9 @@
 import { 
   SearchRequest, 
+  ContextSearchRequest,
   BasicSearchResponse, 
-  ProbabilitySearchResponse, 
+  ProbabilitySearchResponse,
+  DeepSearchResponse, 
   APIResponse 
 } from '../types';
 
@@ -56,7 +58,7 @@ export const searchAPI = {
     return handleResponse<BasicSearchResponse>(response);
   },
 
-  deep: async (request: SearchRequest): Promise<ProbabilitySearchResponse> => {
+  deep: async (request: SearchRequest): Promise<DeepSearchResponse> => {
     const response = await fetch(`${API_BASE_URL}/search/deep`, {
       method: 'POST',
       headers: {
@@ -66,10 +68,10 @@ export const searchAPI = {
       body: JSON.stringify(request),
     });
 
-    return handleResponse<ProbabilitySearchResponse>(response);
+    return handleResponse<DeepSearchResponse>(response);
   },
 
-  context: async (request: SearchRequest): Promise<ProbabilitySearchResponse> => {
+  context: async (request: ContextSearchRequest): Promise<ProbabilitySearchResponse> => {
     const response = await fetch(`${API_BASE_URL}/search/context`, {
       method: 'POST',
       headers: {

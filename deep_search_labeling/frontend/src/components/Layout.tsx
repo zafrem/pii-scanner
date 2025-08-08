@@ -20,7 +20,7 @@ import {
   Label,
   Settings,
   Analytics,
-  GetApp,
+  CloudDownload,
   Menu as MenuIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -45,8 +45,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const menuItems = [
     { text: 'Projects', icon: <Dashboard />, path: '/projects' },
     { text: 'Labeling', icon: <Label />, path: '/projects/current/label' },
-    { text: 'Analytics', icon: <Analytics />, path: '/projects/current/analytics' },
-    { text: 'Export', icon: <GetApp />, path: '/projects/current/export' },
+    { text: 'Analytics', icon: <Analytics />, path: '/analytics' },
+    { text: 'Export Training Data', icon: <CloudDownload />, path: '/export-training' },
     { text: 'Settings', icon: <Settings />, path: '/projects/current/settings' },
   ];
 

@@ -31,26 +31,18 @@ import {
   Help,
   Delete,
 } from '@mui/icons-material';
-import { PIIType, PIIEntity, TextSample } from '../types';
+import { PIIClassification, PIIClassificationItem, TextSample } from '../types';
 
 interface LabelingInterfaceProps {
   sample?: TextSample;
-  onSave: (entities: PIIEntity[]) => void;
+  onSave: (classifications: PIIClassificationItem[]) => void;
   onNext: () => void;
   onPrevious: () => void;
 }
 
-const entityColors: Record<PIIType, string> = {
-  [PIIType.NAME]: '#FF5722',
-  [PIIType.EMAIL]: '#2196F3',
-  [PIIType.PHONE]: '#4CAF50',
-  [PIIType.ADDRESS]: '#9C27B0',
-  [PIIType.ID_NUMBER]: '#FF9800',
-  [PIIType.CREDIT_CARD]: '#F44336',
-  [PIIType.ORGANIZATION]: '#607D8B',
-  [PIIType.DATE]: '#795548',
-  [PIIType.POSTAL_CODE]: '#3F51B5',
-  [PIIType.CUSTOM]: '#9E9E9E',
+const classificationColors: Record<PIIClassification, string> = {
+  [PIIClassification.PII]: '#FF5722',
+  [PIIClassification.NON_PII]: '#4CAF50',
 };
 
 const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
@@ -59,18 +51,18 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
   onNext,
   onPrevious,
 }) => {
-  const [entities, setEntities] = useState<PIIEntity[]>([]);
+  const [classifications, setClassifications] = useState<PIIClassificationItem[]>([]);
   const [selectedText, setSelectedText] = useState<{
     start: number;
     end: number;
     text: string;
   } | null>(null);
-  const [selectedEntityType, setSelectedEntityType] = useState<PIIType>(PIIType.NAME);
+  const [selectedClassification, setSelectedClassification] = useState<PIIClassification>(PIIClassification.PII);
   const [confidence, setConfidence] = useState<number>(0.8);
   const [notes, setNotes] = useState<string>('');
   const [showGuidelines, setShowGuidelines] = useState(false);
-  const [undoStack, setUndoStack] = useState<PIIEntity[][]>([]);
-  const [redoStack, setRedoStack] = useState<PIIEntity[][]>([]);
+  const [undoStack, setUndoStack] = useState<PIIClassificationItem[][]>([]);
+  const [redoStack, setRedoStack] = useState<PIIClassificationItem[][]>([]);
 
   // Mock sample data
   const mockSample: TextSample = sample || {
@@ -79,7 +71,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
     text: 'Hello, my name is John Doe and you can reach me at john.doe@example.com or call me at (555) 123-4567. I live at 123 Main Street, New York, NY 10001.',
     language: 'english',
     status: 'in_progress' as any,
-    entities: [],
+    classifications: [],
     annotatorIds: [],
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -87,7 +79,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
 
   useEffect(() => {
     if (sample) {
-      setEntities(sample.entities || []);
+      setClassifications(sample.classifications || []);
     }
   }, [sample]);
 
@@ -110,25 +102,25 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
   const addEntity = useCallback(() => {
     if (!selectedText) return;
 
-    // Check for overlapping entities
-    const hasOverlap = entities.some(
-      (entity) =>
-        (selectedText.start >= entity.start && selectedText.start < entity.end) ||
-        (selectedText.end > entity.start && selectedText.end <= entity.end) ||
-        (selectedText.start <= entity.start && selectedText.end >= entity.end)
+    // Check for overlapping classifications
+    const hasOverlap = classifications.some(
+      (item) =>
+        (selectedText.start >= item.start && selectedText.start < item.end) ||
+        (selectedText.end > item.start && selectedText.end <= item.end) ||
+        (selectedText.start <= item.start && selectedText.end >= item.end)
     );
 
     if (hasOverlap) {
-      alert('Selected text overlaps with existing entity');
+      alert('Selected text overlaps with existing classification');
       return;
     }
 
-    const newEntity: PIIEntity = {
+    const newClassification: PIIClassificationItem = {
       id: Date.now().toString(),
       start: selectedText.start,
       end: selectedText.end,
       text: selectedText.text,
-      type: selectedEntityType,
+      classification: selectedClassification,
       confidence,
       notes: notes || undefined,
       annotatorId: 'current-user', // This would come from auth context
@@ -137,69 +129,69 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
     };
 
     // Save current state for undo
-    setUndoStack((prev) => [...prev, entities]);
+    setUndoStack((prev) => [...prev, classifications]);
     setRedoStack([]);
 
-    setEntities((prev) => [...prev, newEntity]);
+    setClassifications((prev) => [...prev, newClassification]);
     setSelectedText(null);
     setNotes('');
-  }, [selectedText, selectedEntityType, confidence, notes, entities]);
+  }, [selectedText, selectedClassification, confidence, notes, classifications]);
 
-  const deleteEntity = useCallback((entityId: string) => {
-    setUndoStack((prev) => [...prev, entities]);
+  const deleteClassification = useCallback((classificationId: string) => {
+    setUndoStack((prev) => [...prev, classifications]);
     setRedoStack([]);
-    setEntities((prev) => prev.filter((entity) => entity.id !== entityId));
-  }, [entities]);
+    setClassifications((prev) => prev.filter((item) => item.id !== classificationId));
+  }, [classifications]);
 
   const undo = useCallback(() => {
     if (undoStack.length > 0) {
-      setRedoStack((prev) => [entities, ...prev]);
-      setEntities(undoStack[undoStack.length - 1]);
+      setRedoStack((prev) => [classifications, ...prev]);
+      setClassifications(undoStack[undoStack.length - 1]);
       setUndoStack((prev) => prev.slice(0, -1));
     }
-  }, [entities, undoStack]);
+  }, [classifications, undoStack]);
 
   const redo = useCallback(() => {
     if (redoStack.length > 0) {
-      setUndoStack((prev) => [...prev, entities]);
-      setEntities(redoStack[0]);
+      setUndoStack((prev) => [...prev, classifications]);
+      setClassifications(redoStack[0]);
       setRedoStack((prev) => prev.slice(1));
     }
-  }, [entities, redoStack]);
+  }, [classifications, redoStack]);
 
   const renderHighlightedText = () => {
     const text = mockSample.text;
     let lastIndex = 0;
     const parts = [];
 
-    // Sort entities by start position
-    const sortedEntities = [...entities].sort((a, b) => a.start - b.start);
+    // Sort classifications by start position
+    const sortedClassifications = [...classifications].sort((a, b) => a.start - b.start);
 
-    sortedEntities.forEach((entity, index) => {
-      // Add text before entity
-      if (entity.start > lastIndex) {
-        parts.push(text.slice(lastIndex, entity.start));
+    sortedClassifications.forEach((item, index) => {
+      // Add text before classification
+      if (item.start > lastIndex) {
+        parts.push(text.slice(lastIndex, item.start));
       }
 
-      // Add highlighted entity
+      // Add highlighted classification
       parts.push(
         <Chip
-          key={`entity-${index}`}
-          label={entity.text}
+          key={`classification-${index}`}
+          label={`${item.text} (${item.classification.toUpperCase()})`}
           style={{
-            backgroundColor: entityColors[entity.type],
+            backgroundColor: classificationColors[item.classification],
             color: 'white',
             margin: '0 2px',
             height: 'auto',
             borderRadius: '4px',
           }}
-          onDelete={() => deleteEntity(entity.id)}
+          onDelete={() => deleteClassification(item.id)}
           deleteIcon={<Delete style={{ color: 'white' }} />}
           size="small"
         />
       );
 
-      lastIndex = entity.end;
+      lastIndex = item.end;
     });
 
     // Add remaining text
@@ -211,11 +203,8 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
   };
 
   const keyboardShortcuts = [
-    { key: '1', type: PIIType.NAME },
-    { key: '2', type: PIIType.EMAIL },
-    { key: '3', type: PIIType.PHONE },
-    { key: '4', type: PIIType.ADDRESS },
-    { key: '5', type: PIIType.ID_NUMBER },
+    { key: '1', classification: PIIClassification.PII },
+    { key: '2', classification: PIIClassification.NON_PII },
   ];
 
   useEffect(() => {
@@ -224,7 +213,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
         switch (event.key) {
           case 's':
             event.preventDefault();
-            onSave(entities);
+            onSave(classifications);
             break;
           case 'z':
             event.preventDefault();
@@ -238,7 +227,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
       } else {
         const shortcut = keyboardShortcuts.find((s) => s.key === event.key);
         if (shortcut && selectedText) {
-          setSelectedEntityType(shortcut.type);
+          setSelectedClassification(shortcut.classification);
           setTimeout(addEntity, 0);
         }
       }
@@ -246,7 +235,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [entities, selectedText, undo, redo, addEntity, onSave, keyboardShortcuts]);
+  }, [classifications, selectedText, undo, redo, addEntity, onSave, keyboardShortcuts]);
 
   return (
     <Box>
@@ -301,24 +290,24 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
             </Typography>
 
             <FormControl fullWidth margin="normal">
-              <InputLabel>Entity Type</InputLabel>
+              <InputLabel>Classification Type</InputLabel>
               <Select
-                value={selectedEntityType}
-                onChange={(e) => setSelectedEntityType(e.target.value as PIIType)}
-                label="Entity Type"
+                value={selectedClassification}
+                onChange={(e) => setSelectedClassification(e.target.value as PIIClassification)}
+                label="Classification Type"
               >
-                {Object.values(PIIType).map((type) => (
-                  <MenuItem key={type} value={type}>
+                {Object.values(PIIClassification).map((classification) => (
+                  <MenuItem key={classification} value={classification}>
                     <Chip
-                      label={type.toUpperCase()}
+                      label={classification.toUpperCase()}
                       size="small"
                       style={{
-                        backgroundColor: entityColors[type],
+                        backgroundColor: classificationColors[classification],
                         color: 'white',
                         marginRight: 8,
                       }}
                     />
-                    {type.replace('_', ' ')}
+                    {classification.replace('_', ' ')}
                   </MenuItem>
                 ))}
               </Select>
@@ -352,7 +341,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
                 disabled={!selectedText}
                 size="small"
               >
-                Add Entity
+                Add Classification
               </Button>
               
               <Tooltip title="Undo (Ctrl+Z)">
@@ -389,33 +378,33 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
               </Tooltip>
             </Box>
 
-            {/* Entity List */}
+            {/* Classification List */}
             <Typography variant="h6" sx={{ mt: 3 }}>
-              Detected Entities ({entities.length})
+              Classifications ({classifications.length})
             </Typography>
             <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
-              {entities.map((entity) => (
-                <Card key={entity.id} sx={{ mb: 1, p: 1 }}>
+              {classifications.map((item) => (
+                <Card key={item.id} sx={{ mb: 1, p: 1 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box>
                       <Chip
-                        label={entity.type.toUpperCase()}
+                        label={item.classification.toUpperCase()}
                         size="small"
                         style={{
-                          backgroundColor: entityColors[entity.type],
+                          backgroundColor: classificationColors[item.classification],
                           color: 'white',
                         }}
                       />
                       <Typography variant="body2" sx={{ mt: 0.5 }}>
-                        "{entity.text}"
+                        "{item.text}"
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        Confidence: {entity.confidence}
+                        Confidence: {item.confidence}
                       </Typography>
                     </Box>
                     <IconButton
                       size="small"
-                      onClick={() => deleteEntity(entity.id)}
+                      onClick={() => deleteClassification(item.id)}
                       color="error"
                     >
                       <Delete />
@@ -441,7 +430,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
         <Button
           variant="contained"
           startIcon={<Save />}
-          onClick={() => onSave(entities)}
+          onClick={() => onSave(classifications)}
         >
           Save Progress
         </Button>
@@ -465,7 +454,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
           <Box sx={{ mb: 2 }}>
             {keyboardShortcuts.map((shortcut) => (
               <Typography key={shortcut.key} variant="body2">
-                <strong>{shortcut.key}</strong> - {shortcut.type.replace('_', ' ')}
+                <strong>{shortcut.key}</strong> - {shortcut.classification.replace('_', ' ')}
               </Typography>
             ))}
             <Typography variant="body2">
@@ -504,7 +493,7 @@ const LabelingInterface: React.FC<LabelingInterfaceProps> = ({
       <Fab
         color="primary"
         sx={{ position: 'fixed', bottom: 16, right: 16 }}
-        onClick={() => onSave(entities)}
+        onClick={() => onSave(classifications)}
       >
         <Save />
       </Fab>

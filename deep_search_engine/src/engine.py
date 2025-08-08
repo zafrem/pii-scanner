@@ -18,13 +18,14 @@ from .config import config
 from .models import (
     DeepSearchRequest,
     DeepSearchResponse,
-    PIIEntity,
-    PIIType,
+    PIIClassificationResult,
+    PIIClassification,
     ConfidenceLevel,
     Position,
     TrainingRequest,
     ModelInfo
 )
+from .simple_learning_engine import SimpleLearningEngine
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,8 @@ class DeepSearchEngine:
         self.models = {}
         self.tokenizers = {}
         self.nlp_models = {}
+        self.simple_engine = SimpleLearningEngine()
+        self.use_simple_engine = True  # Default to simple engine
         self.is_initialized = False
         self.training_status = {"is_training": False, "progress": 0, "model": None}
     
@@ -41,11 +44,16 @@ class DeepSearchEngine:
         try:
             logger.info("Initializing Deep Search Engine...")
             
-            # Load spaCy models for different languages
-            await self._load_spacy_models()
+            # Initialize simple learning engine first (default)
+            await self.simple_engine.initialize()
             
-            # Load transformer models
-            await self._load_transformer_models()
+            # Try to load advanced models, but don't fail if they're not available
+            try:
+                await self._load_spacy_models()
+                await self._load_transformer_models()
+            except Exception as e:
+                logger.warning(f"Advanced models not available, using simple engine: {e}")
+                self.use_simple_engine = True
             
             self.is_initialized = True
             logger.info("Deep Search Engine initialization completed")
@@ -76,7 +84,7 @@ class DeepSearchEngine:
                 continue
     
     async def _load_transformer_models(self):
-        """Load transformer models for NER."""
+        """Load transformer models for ML Classification."""
         try:
             model_name = config.default_model
             logger.info(f"Loading transformer model: {model_name}")
@@ -93,15 +101,25 @@ class DeepSearchEngine:
     
     def is_ready(self) -> bool:
         """Check if the engine is ready to process requests."""
-        return self.is_initialized
+        return self.is_initialized and (self.simple_engine.is_ready() or self._has_advanced_models())
+    
+    def _has_advanced_models(self) -> bool:
+        """Check if advanced models are loaded."""
+        return len(self.models) > 0 or len(self.nlp_models) > 0
     
     async def search(self, request: DeepSearchRequest) -> DeepSearchResponse:
-        """Perform deep PII search using NER and context analysis."""
+        """Perform deep PII search using binary ML Classification (PII/non-PII) and context analysis."""
         if not self.is_ready():
             raise RuntimeError("Engine not initialized")
         
         logger.info(f"Starting deep search for text length: {len(request.text)}")
         
+        # Use simple engine by default or if advanced models are not available
+        if self.use_simple_engine or not self._has_advanced_models():
+            logger.info("Using Simple Learning Engine for classification")
+            return await self.simple_engine.search(request)
+        
+        # Fallback to advanced models if available
         detected_entities = []
         
         # Process with each requested language
@@ -124,16 +142,16 @@ class DeepSearchEngine:
         logger.info(f"Deep search completed. Found {len(detected_entities)} entities")
         return response
     
-    async def _process_language(self, text: str, language: str, threshold: float) -> List[PIIEntity]:
+    async def _process_language(self, text: str, language: str, threshold: float) -> List[PIIClassificationResult]:
         """Process text for a specific language."""
         entities = []
         
-        # Use spaCy for basic NER if available
+        # Use spaCy for basic ML Classification if available
         if language in self.nlp_models:
             spacy_entities = self._extract_spacy_entities(text, language)
             entities.extend(spacy_entities)
         
-        # Use transformer-based NER
+        # Use transformer-based ML Classification
         transformer_entities = await self._extract_transformer_entities(text, language, threshold)
         entities.extend(transformer_entities)
         
@@ -142,8 +160,8 @@ class DeepSearchEngine:
         
         return entities
     
-    def _extract_spacy_entities(self, text: str, language: str) -> List[PIIEntity]:
-        """Extract entities using spaCy NER."""
+    def _extract_spacy_entities(self, text: str, language: str) -> List[PIIClassificationResult]:
+        """Extract entities using spaCy ML Classification."""
         entities = []
         
         if language not in self.nlp_models:
@@ -153,12 +171,12 @@ class DeepSearchEngine:
         doc = nlp(text)
         
         for ent in doc.ents:
-            pii_type = self._map_spacy_label_to_pii(ent.label_)
-            if pii_type:
-                entity = PIIEntity(
+            if self._is_pii_entity(ent.label_):
+                entity = PIIClassificationResult(
                     id=str(uuid.uuid4()),
                     text=ent.text,
-                    type=pii_type,
+                    type=self._map_spacy_label_to_type(ent.label_),
+                    classification=PIIClassification.PII,
                     language=language,
                     position=Position(start=ent.start_char, end=ent.end_char),
                     probability=0.8,  # Default confidence for spaCy
@@ -170,7 +188,7 @@ class DeepSearchEngine:
         
         return entities
     
-    async def _extract_transformer_entities(self, text: str, language: str, threshold: float) -> List[PIIEntity]:
+    async def _extract_transformer_entities(self, text: str, language: str, threshold: float) -> List[PIIClassificationResult]:
         """Extract entities using transformer models."""
         entities = []
         
@@ -178,7 +196,7 @@ class DeepSearchEngine:
             return entities
         
         try:
-            # Create NER pipeline
+            # Create ML Classification pipeline
             ner_pipeline = pipeline(
                 "ner",
                 model=self.models["default"],
@@ -192,12 +210,12 @@ class DeepSearchEngine:
             
             for result in results:
                 if result["score"] >= threshold:
-                    pii_type = self._map_transformer_label_to_pii(result["entity_group"])
-                    if pii_type:
-                        entity = PIIEntity(
+                    if self._is_pii_from_transformer(result["entity_group"]):
+                        entity = PIIClassificationResult(
                             id=str(uuid.uuid4()),
                             text=result["word"],
-                            type=pii_type,
+                            type=self._map_transformer_label_to_type(result["entity_group"]),
+                            classification=PIIClassification.PII,
                             language=language,
                             position=Position(start=result["start"], end=result["end"]),
                             probability=result["score"],
@@ -208,36 +226,49 @@ class DeepSearchEngine:
                         entities.append(entity)
             
         except Exception as e:
-            logger.error(f"Transformer NER failed: {e}")
+            logger.error(f"Transformer ML Classification failed: {e}")
         
         return entities
     
-    def _map_spacy_label_to_pii(self, label: str) -> Optional[PIIType]:
-        """Map spaCy entity labels to PII types."""
-        mapping = {
-            "PERSON": PIIType.NAME,
-            "ORG": PIIType.ORGANIZATION,
-            "DATE": PIIType.DATE,
-            "GPE": PIIType.ADDRESS,
-            "LOC": PIIType.ADDRESS,
-            "EMAIL": PIIType.EMAIL,
-            "PHONE": PIIType.PHONE
+    def _is_pii_entity(self, label: str) -> bool:
+        """Determine if spaCy entity label indicates PII."""
+        pii_labels = {
+            "PERSON", "ORG", "DATE", "GPE", "LOC", "EMAIL", "PHONE"
         }
-        return mapping.get(label)
+        return label in pii_labels
     
-    def _map_transformer_label_to_pii(self, label: str) -> Optional[PIIType]:
-        """Map transformer entity labels to PII types."""
-        mapping = {
-            "PER": PIIType.NAME,
-            "PERSON": PIIType.NAME,
-            "ORG": PIIType.ORGANIZATION,
-            "LOC": PIIType.ADDRESS,
-            "DATE": PIIType.DATE,
-            "EMAIL": PIIType.EMAIL,
-            "PHONE": PIIType.PHONE,
-            "MISC": None  # Skip miscellaneous entities
+    def _is_pii_from_transformer(self, label: str) -> bool:
+        """Determine if transformer entity label indicates PII."""
+        pii_labels = {
+            "PER", "PERSON", "ORG", "LOC", "DATE", "EMAIL", "PHONE"
         }
-        return mapping.get(label)
+        return label in pii_labels
+    
+    def _map_spacy_label_to_type(self, label: str) -> str:
+        """Map spaCy entity label to PII type."""
+        label_mapping = {
+            "PERSON": "name",
+            "ORG": "organization", 
+            "DATE": "date",
+            "GPE": "location",
+            "LOC": "location",
+            "EMAIL": "email",
+            "PHONE": "phone"
+        }
+        return label_mapping.get(label, "name")
+    
+    def _map_transformer_label_to_type(self, label: str) -> str:
+        """Map transformer entity label to PII type."""
+        label_mapping = {
+            "PER": "name",
+            "PERSON": "name",
+            "ORG": "organization",
+            "LOC": "location",
+            "DATE": "date", 
+            "EMAIL": "email",
+            "PHONE": "phone"
+        }
+        return label_mapping.get(label, "name")
     
     def _get_confidence_level(self, score: float) -> ConfidenceLevel:
         """Determine confidence level based on score."""
@@ -254,15 +285,16 @@ class DeepSearchEngine:
         context_end = min(len(text), end + window)
         return text[context_start:context_end]
     
-    def _apply_rule_based_filters(self, entities: List[PIIEntity], text: str) -> List[PIIEntity]:
+    def _apply_rule_based_filters(self, entities: List[PIIClassificationResult], text: str) -> List[PIIClassificationResult]:
         """Apply rule-based filters and add regex-based detections."""
         # Add regex-based email detection
         email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         for match in re.finditer(email_pattern, text):
-            entity = PIIEntity(
+            entity = PIIClassificationResult(
                 id=str(uuid.uuid4()),
                 text=match.group(),
-                type=PIIType.EMAIL,
+                type="email",
+                classification=PIIClassification.PII,
                 language="universal",
                 position=Position(start=match.start(), end=match.end()),
                 probability=0.95,
@@ -275,10 +307,11 @@ class DeepSearchEngine:
         # Add phone number detection
         phone_pattern = r'\b(?:\+?1[-.\s]?)?\(?([0-9]{3})\)?[-.\s]?([0-9]{3})[-.\s]?([0-9]{4})\b'
         for match in re.finditer(phone_pattern, text):
-            entity = PIIEntity(
+            entity = PIIClassificationResult(
                 id=str(uuid.uuid4()),
                 text=match.group(),
-                type=PIIType.PHONE,
+                type="phone",
+                classification=PIIClassification.PII,
                 language="universal",
                 position=Position(start=match.start(), end=match.end()),
                 probability=0.9,
@@ -290,7 +323,7 @@ class DeepSearchEngine:
         
         return entities
     
-    def _deduplicate_entities(self, entities: List[PIIEntity]) -> List[PIIEntity]:
+    def _deduplicate_entities(self, entities: List[PIIClassificationResult]) -> List[PIIClassificationResult]:
         """Remove duplicate and overlapping entities."""
         if not entities:
             return entities
@@ -319,16 +352,25 @@ class DeepSearchEngine:
     
     async def list_models(self) -> List[ModelInfo]:
         """List available models."""
-        models = [
-            ModelInfo(
-                name="bert-base-multilingual-cased",
-                version="1.0",
-                languages=config.supported_languages,
-                accuracy=0.85,
-                f1_score=0.82,
-                last_trained="2024-01-01"
+        models = []
+        
+        # Add simple learning model
+        simple_models = await self.simple_engine.list_models()
+        models.extend(simple_models)
+        
+        # Add advanced models if available
+        if self._has_advanced_models():
+            models.append(
+                ModelInfo(
+                    name="bert-base-multilingual-cased",
+                    version="1.0",
+                    languages=config.supported_languages,
+                    accuracy=0.85,
+                    f1_score=0.82,
+                    last_trained="2024-01-01"
+                )
             )
-        ]
+        
         return models
     
     async def train_model(self, request: TrainingRequest):
@@ -371,4 +413,20 @@ class DeepSearchEngine:
     
     async def get_training_status(self) -> Dict[str, Any]:
         """Get current training status."""
+        if self.use_simple_engine:
+            return await self.simple_engine.get_training_status()
         return self.training_status
+    
+    async def add_training_data(self, training_data: List[Dict[str, Any]]):
+        """Add training data from labeling system."""
+        if self.use_simple_engine:
+            await self.simple_engine.add_training_data(training_data)
+        else:
+            logger.info(f"Received {len(training_data)} training samples for advanced models")
+            # Store for future advanced model training
+            # This would be implemented for transformer model fine-tuning
+    
+    def set_engine_mode(self, use_simple: bool):
+        """Switch between simple and advanced engine modes."""
+        self.use_simple_engine = use_simple
+        logger.info(f"Engine mode set to: {'Simple' if use_simple else 'Advanced'}")

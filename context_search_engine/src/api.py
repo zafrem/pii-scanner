@@ -235,6 +235,19 @@ async def get_engine_stats() -> Dict[str, Any]:
         logger.error(f"Failed to get stats: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/debug")
+async def get_debug_info() -> Dict[str, Any]:
+    """Get debug information about the last context search request."""
+    try:
+        debug_info = engine.get_debug_info()
+        return {
+            "success": True,
+            "data": debug_info
+        }
+    except Exception as e:
+        logger.error(f"Failed to get debug info: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run(
         "api:app",

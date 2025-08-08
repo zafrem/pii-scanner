@@ -50,19 +50,15 @@ class PromptManager:
     
     def _default_context_prompt(self) -> str:
         """Default context analysis prompt."""
-        return """Analyze this text snippet to determine if the highlighted entity represents genuine PII:
+        return """Analyze if "{entity}" is genuine personal information in this context:
 
 Text: "{text}"
 Entity: "{entity}" (Type: {type})
-Position: characters {start}-{end}
 
-Consider:
-1. Is this referring to a real person/organization?
-2. What is the surrounding context?
-3. Could this be fictional, example, or reference content?
-4. What is the privacy risk if this is genuine PII?
+Is this likely to be real personal information (not fictional, example, or generic text)?
 
-Respond with JSON: {{"is_genuine_pii": boolean, "confidence": float, "reason": string, "risk_level": string}}"""
+Respond in JSON format:
+{{"is_genuine_pii": true, "confidence": 0.8, "reason": "This appears to be a real person's name", "risk_level": "medium"}}"""
     
     def _default_false_positive_prompt(self) -> str:
         """Default false positive detection prompt."""

@@ -43,6 +43,18 @@ export interface ProbabilitySearchItem {
   stageResults?: object;
 }
 
+export interface DeepSearchItem {
+  id: string;
+  text: string;
+  classification: 'pii' | 'non_pii';
+  language: string;
+  position: Position;
+  probability: number;
+  confidenceLevel: ConfidenceLevel;
+  sources: string[];
+  context?: string;
+}
+
 export interface ResultSummary {
   totalItems: number;
   detectedItems: number;
@@ -72,17 +84,39 @@ export interface BasicSearchResponse {
 
 export interface ProbabilitySearchResponse {
   stage?: 2 | 3;
-  stages: number[];
+  stages?: number[];
   method: string;
   items: ProbabilitySearchItem[];
   summary: ProbabilitySummary;
   processingTime: number;
 }
 
+export interface DeepSearchResponse {
+  stage: 2;
+  method: string;
+  items: DeepSearchItem[];
+  summary: {
+    totalItems: number;
+    detectedItems?: number;
+    highConfidenceItems: number;
+    mediumConfidenceItems: number;
+    lowConfidenceItems: number;
+    averageProbability: number;
+    languageBreakdown: Record<string, number>;
+    classificationBreakdown: Record<string, number>;
+  };
+  processingTime: number;
+  modelInfo?: any;
+}
+
 export interface SearchRequest {
   text: string;
   languages: Language[];
   maxCharacters?: number;
+}
+
+export interface ContextSearchRequest extends SearchRequest {
+  previousDetections: any[]; // Items from previous stages
 }
 
 export interface APIResponse<T> {
@@ -109,7 +143,7 @@ export interface SearchState {
   selectedLanguages: Language[];
   results: {
     stage1?: BasicSearchResponse;
-    stage2?: ProbabilitySearchResponse;
+    stage2?: DeepSearchResponse;
     stage3?: ProbabilitySearchResponse;
   };
   error?: string;

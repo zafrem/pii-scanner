@@ -30,6 +30,12 @@ class ContextSearchEngine:
     def __init__(self):
         self.prompt_manager = PromptManager()
         self.is_initialized = False
+        self.debug_info = {
+            "last_request_prompts": [],
+            "last_request_responses": [],
+            "last_request_text": "",
+            "last_request_entities": []
+        }
         self.stats = {
             "total_requests": 0,
             "successful_requests": 0,
@@ -53,7 +59,16 @@ class ContextSearchEngine:
                 if not await client.check_model_exists(config.ollama_model):
                     logger.warning(f"Default model {config.ollama_model} not found, attempting to pull...")
                     if not await client.pull_model(config.ollama_model):
-                        raise Exception(f"Failed to pull default model: {config.ollama_model}")
+                        # If pulling fails, try to use any available model
+                        logger.warning(f"Failed to pull default model: {config.ollama_model}")
+                        available_models = await client.list_models()
+                        if available_models:
+                            fallback_model = available_models[0].name
+                            logger.info(f"Using fallback model: {fallback_model}")
+                            # Update config to use the fallback model
+                            config._config["ollama"]["default_model"] = fallback_model
+                        else:
+                            raise Exception(f"No models available in Ollama and failed to pull default model: {config.ollama_model}")
                 
                 logger.info(f"Using model: {config.ollama_model}")
             
@@ -78,6 +93,22 @@ class ContextSearchEngine:
         
         start_time = time.time()
         self.stats["total_requests"] += 1
+        
+        # Clear and initialize debug info for this request
+        self.debug_info = {
+            "last_request_prompts": [],
+            "last_request_responses": [],
+            "last_request_text": request.text,
+            "last_request_entities": [
+                {
+                    "id": entity.id,
+                    "text": entity.text,
+                    "type": entity.type.value,
+                    "position": {"start": entity.position.start, "end": entity.position.end}
+                }
+                for entity in request.previous_detections
+            ]
+        }
         
         try:
             logger.info(f"Starting context search for {len(request.previous_detections)} entities")
@@ -271,6 +302,16 @@ class ContextSearchEngine:
                     end=entity.position.end
                 )
             
+            # Store prompt for debugging
+            self.debug_info["last_request_prompts"].append({
+                "entity_id": entity.id,
+                "entity_text": entity.text,
+                "entity_type": entity.type.value,
+                "prompt": prompt,
+                "model": model,
+                "context": context
+            })
+            
             # Analyze with LLM
             async with ollama_client as client:
                 response = await client.analyze_json(
@@ -282,6 +323,13 @@ class ContextSearchEngine:
                     start=entity.position.start,
                     end=entity.position.end
                 )
+                
+            # Store response for debugging
+            self.debug_info["last_request_responses"].append({
+                "entity_id": entity.id,
+                "entity_text": entity.text,
+                "response": response
+            })
             
             # Parse response and create analysis result
             return ContextAnalysisResult(
@@ -357,4 +405,31 @@ class ContextSearchEngine:
             "uptime": uptime,
             "error_rate": error_rate,
             "requests_per_second": self.stats["total_requests"] / max(1, uptime)
+        }
+    
+    def get_debug_info(self) -> Dict[str, Any]:
+        """Get debug information about the last request."""
+        return {
+            "last_request_text": self.debug_info["last_request_text"],
+            "last_request_entities_count": len(self.debug_info["last_request_entities"]),
+            "last_request_entities": self.debug_info["last_request_entities"],
+            "prompts_sent": [
+                {
+                    "entity_id": prompt["entity_id"],
+                    "entity_text": prompt["entity_text"],
+                    "entity_type": prompt["entity_type"],
+                    "model": prompt["model"],
+                    "context": prompt["context"][:200] + "..." if len(prompt["context"]) > 200 else prompt["context"],
+                    "full_prompt": prompt["prompt"]
+                }
+                for prompt in self.debug_info["last_request_prompts"]
+            ],
+            "responses_received": [
+                {
+                    "entity_id": resp["entity_id"],
+                    "entity_text": resp["entity_text"],
+                    "response": resp["response"]
+                }
+                for resp in self.debug_info["last_request_responses"]
+            ]
         }

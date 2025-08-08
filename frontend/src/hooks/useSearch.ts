@@ -2,11 +2,13 @@ import { useState, useCallback } from 'react';
 import { 
   SearchState, 
   SearchRequest, 
+  ContextSearchRequest,
   Language, 
   SearchStage, 
   StageProgress,
   BasicSearchResponse,
-  ProbabilitySearchResponse
+  ProbabilitySearchResponse,
+  DeepSearchResponse
 } from '../types';
 import { searchAPI, APIError } from '../services/api';
 
@@ -74,7 +76,7 @@ export const useSearch = () => {
         }
         
         case 2: {
-          const result: ProbabilitySearchResponse = await searchAPI.deep(request);
+          const result: DeepSearchResponse = await searchAPI.deep(request);
           setState(prev => ({
             ...prev,
             results: { ...prev.results, stage2: result },
@@ -85,7 +87,21 @@ export const useSearch = () => {
         }
         
         case 3: {
-          const result: ProbabilitySearchResponse = await searchAPI.context(request);
+          // For context search, we need to pass previous detections from stage 2
+          const previousDetections = state.results.stage2?.items || [];
+          
+          // Debug logging
+          console.log('Context search debug:', {
+            stage2Results: state.results.stage2,
+            previousDetectionsCount: previousDetections.length,
+            previousDetections: JSON.stringify(previousDetections, null, 2)
+          });
+          
+          const contextRequest = {
+            ...request,
+            previousDetections
+          };
+          const result: ProbabilitySearchResponse = await searchAPI.context(contextRequest);
           setState(prev => ({
             ...prev,
             results: { ...prev.results, stage3: result },
@@ -116,8 +132,11 @@ export const useSearch = () => {
   }, [executeSearch]);
 
   const proceedToNextStage = useCallback(() => {
-    if (state.stage < 3) {
-      executeSearch((state.stage + 1) as SearchStage);
+    // Execute the current stage that the user wants to proceed to
+    if (state.stage === 2) {
+      executeSearch(2); // Deep Search
+    } else if (state.stage === 3) {
+      executeSearch(3); // Context Search
     }
   }, [state.stage, executeSearch]);
 
